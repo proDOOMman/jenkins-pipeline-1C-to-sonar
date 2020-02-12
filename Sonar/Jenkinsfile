@@ -28,7 +28,6 @@ pipeline {
         string(defaultValue: "${env.EDT_VERSION}", description: 'Используемая версия EDT. По умолчанию 1.13.0', name: 'EDT_VERSION')
         string(defaultValue: "${env.perf_catalog}", description: 'Путь к каталогу с замерами производительности, на основе которых будет рассчитано покрытие. Если пусто - покрытие не считается.', name: 'perf_catalog')
         string(defaultValue: "${env.git_credentials_Id}", description: 'ID Credentials для получения изменений из гит-репозитория', name: 'git_credentials_Id')
-        string(defaultValue: "${env.rocket_channel}", description: 'Канал в рокет-чате для отправки уведомлений', name: 'rocket_channel')
     }
     agent {
         label "${(env.jenkinsAgent == null || env.jenkinsAgent == 'null') ? "master" : env.jenkinsAgent}"
@@ -43,11 +42,6 @@ pipeline {
                 timestamps {
                     script {
 
-                        rocket_channel = rocket_channel == null || rocket_channel == 'null' ? '' : rocket_channel
-
-                        if (!rocket_channel.isEmpty() ) {
-                            rocketSend channel: rocket_channel, message: "Sonar check started: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL})", rawMessage: true
-                        }
                         // Инициализация параметров значениями по умолчанию
                         sonar_catalog = sonar_catalog.isEmpty() ? "C:/Sonar/" : sonar_catalog
                         PROPERTIES_CATALOG = PROPERTIES_CATALOG.isEmpty() ? "./Sonar" : PROPERTIES_CATALOG
@@ -223,10 +217,6 @@ pipeline {
                     PROJECT_URL = "${env.SONAR_HOST_URL}/dashboard?id=${PROJECT_KEY}"
                     }
 
-                    if (!rocket_channel.isEmpty() ) {
-                        def qg = waitForQualityGate()
-                        rocketSend channel: rocket_channel, message: "Sonar check completed: [${env.JOB_NAME} ${env.BUILD_NUMBER}](${env.JOB_URL}) STATUS: [${qg.status}](${PROJECT_URL})", rawMessage: true
-                        }
                     }
                     }
                 }
